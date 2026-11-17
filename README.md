@@ -1,11 +1,12 @@
 # hub-plugin-whip
 
-Плагин страницы [Agents Hub](https://github.com/flagman/agents-hub-core) по образцу
-[«Молотка»](https://github.com/flagman/hub-plugin-hammer): кнопка «Плётка» в верхней полосе. Рукоять у курсора, гибкий
-хлыст тянется за рукой; клик - щелчок: хлыст выстреливает, на «экране» остаётся рубец, искры и звук. Esc или «Убрать
-следы» - всё как было.
+A page plugin for [Agents Hub](https://github.com/flagman/agents-hub-core) on the model of
+["Hammer"](https://github.com/flagman/hub-plugin-hammer): a "Whip" button in the top strip. A handle at the cursor, a
+flexible lash follows the hand; a click is a crack: the lash shoots out, a welt stays on the "screen", sparks and a
+sound. Esc or "Clear marks" puts everything back.
 
-![Плётка](icon.png)
+![Whip](icon.png)
 
-Это слой поверх страницы: хаб под ним работает, пока плётка в руке, клики до него не доходят. С «Уменьшить движение» -
-без физики хлыста, только след и звук. Всё рисуется кодом: ни файлов, ни сети, данные хаба не читаются.
+It is a layer over the page: the hub under it keeps working while the whip is in hand, clicks do not reach it. With
+"Reduce motion" there is no lash physics, only the mark and the sound. Everything is drawn by code: no files, no
+network, the hub's data is not read.

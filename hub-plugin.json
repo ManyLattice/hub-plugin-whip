@@ -1,9 +1,9 @@
 {
   "name": "whip",
   "icon": "icon.png",
-  "description": "Плётка по образцу «Молотка»: рукоять у курсора, гибкий хлыст тянется за рукой, щелчок — рубец на экране, искры и звук. Esc — всё как было",
-  "why": "Когда флот довёл — щёлкнуть плёткой, ничего не сломав: это слой поверх страницы, хаб под ним работает как работал",
-  "version": "1.0.0",
+  "description": "A whip on the model of \"Hammer\": a handle at the cursor, a flexible lash follows the hand, a crack leaves a welt on the screen, sparks and a sound. Esc puts everything back",
+  "why": "When the fleet drives you mad, crack a whip without breaking anything: it is a layer over the page, the hub under it works as it did",
+  "version": "1.0.1",
   "hub": "^1.0",
   "web": "main.js"
 }

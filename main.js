@@ -1,13 +1,14 @@
-// Плётка — плагин страницы Agents Hub по образцу «Молотка»: рукоять у курсора, гибкий хлыст тянется за рукой,
-// клик — щелчок: хлыст выстреливает, на «экране» остаётся рубец, звучит щелчок. Esc или «Убрать следы» — всё как было.
-// Это слой поверх страницы: хаб под ним работает, пока плётка в руке, клики до него не доходят. «Уменьшить движение» —
-// без физики хлыста, только след и звук. Всё рисуется кодом, файлов и сети нет.
+// Whip — an Agents Hub page plugin on the model of "Hammer": a handle at the cursor, a flexible lash follows the hand,
+// a click is a crack: the lash shoots out, a welt stays on the "screen", a crack sounds. Esc or "Clear marks" puts
+// everything back. It is a layer over the page: the hub under it keeps working while the whip is in hand, clicks do not
+// reach it. With "Reduce motion" there is no lash physics, only the mark and the sound. Everything is drawn by code, no
+// files and no network.
 
-const N = 26;                 // звеньев хлыста
-const SEG = 9;                // длина звена, px
+const N = 26;                 // links of the lash
+const SEG = 9;                // link length, px
 const GRAVITY = 0.45;
 const DAMP = 0.965;
-const HANDLE = 46;            // рукоять, px
+const HANDLE = 46;            // handle, px
 const ICON = '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" ' +
   'stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l4-4"/>' +
   '<path d="M7 13c3-5 6-8 10-9-2 3-6 5-7 9 2-1 4-1 6 0"/></svg>';
@@ -15,8 +16,11 @@ const ICON = '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"
 const calm = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const rnd = (a, b) => a + Math.random() * (b - a);
 let layer = null, current = null, stopLoop = null;
+// the page language (hub.lang, Plugin API 1.25): Russian for ru, English otherwise (and on cores without hub.lang)
+let RU = false;
+const tr = (en, ru) => (RU ? ru : en);
 
-// --- щелчок: свист взмаха, сухой хлопок (короткий широкий шум), хвост ---------------------------------------------
+// --- the crack: the whoosh of the swing, a dry snap (a short wide noise), a tail ----------------------------------
 let audio = null;
 function crackSound(power) {
   try {
@@ -43,7 +47,7 @@ function crackSound(power) {
     lp.type = "lowpass"; lp.frequency.value = 1400;
     tg.gain.value = 0.12 * power;
     tail.connect(lp).connect(tg).connect(audio.destination); tail.start(at + 0.01);
-  } catch { /* без звука — тоже щёлкнуло */ }
+  } catch { /* no sound — it still cracked */ }
 }
 
 function canvas() {
@@ -54,7 +58,7 @@ function canvas() {
   return c;
 }
 
-// --- рубец: красная полоса по форме кончика хлыста в момент щелчка, с припухлостью и бликом ------------------------
+// --- the welt: a red stripe in the shape of the lash tip at the moment of the crack, with swelling and a highlight --
 function welt(ctx, pts) {
   if (pts.length < 2) return;
   const path = () => {
@@ -76,7 +80,7 @@ function welt(ctx, pts) {
   ctx.restore();
 }
 
-// --- искры и пыль в точке щелчка ----------------------------------------------------------------------------------
+// --- sparks and dust at the point of the crack ------------------------------------------------------------------
 function burst(fx, x, y) {
   if (calm()) return;
   const parts = Array.from({ length: Math.round(rnd(10, 16)) }, () => {
@@ -89,7 +93,7 @@ function burst(fx, x, y) {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, fx.width, fx.height);
     let alive = 0;
-    if (ring < 1) {   // ударная волна щелчка
+    if (ring < 1) {   // the shock wave of the crack
       ring += 0.12;
       ctx.beginPath(); ctx.arc(x, y, 6 + ring * 34, 0, Math.PI * 2);
       ctx.strokeStyle = `rgba(255,255,255,${0.7 * (1 - ring)})`; ctx.lineWidth = 2; ctx.stroke();
@@ -108,7 +112,7 @@ function burst(fx, x, y) {
   requestAnimationFrame(tick);
 }
 
-// --- хлыст: цепочка точек (Верле), первая — у кончика рукояти -----------------------------------------------------
+// --- the lash: a chain of points (Verlet), the first one at the tip of the handle ---------------------------------
 function whip(x, y) {
   const pts = Array.from({ length: N }, (_, i) => ({ x: x + i * 2, y: y + i * SEG, px: x + i * 2, py: y + i * SEG }));
   return {
@@ -137,14 +141,14 @@ function whip(x, y) {
     draw(ctx) {
       ctx.save();
       ctx.lineCap = "round"; ctx.lineJoin = "round";
-      for (let i = 1; i < N; i++) {   // к кончику тоньше
+      for (let i = 1; i < N; i++) {   // thinner toward the tip
         const a = pts[i - 1], b = pts[i];
         ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
         ctx.strokeStyle = i % 2 ? "#5a3418" : "#6b4020";
         ctx.lineWidth = 5.5 - (i / N) * 4.5;
         ctx.stroke();
       }
-      const t = pts[N - 1];   // кисточка
+      const t = pts[N - 1];   // the tassel
       ctx.beginPath(); ctx.moveTo(t.x, t.y); ctx.lineTo(t.x + 4, t.y + 7); ctx.moveTo(t.x, t.y); ctx.lineTo(t.x - 3, t.y + 8);
       ctx.strokeStyle = "#c9a47a"; ctx.lineWidth = 1; ctx.stroke();
       ctx.restore();
@@ -161,9 +165,9 @@ function drawHandle(ctx, x, y, angle) {
   ctx.fillStyle = g;
   ctx.beginPath(); ctx.roundRect(-HANDLE, -5.5, HANDLE, 11, 5); ctx.fill();
   ctx.shadowColor = "transparent";
-  ctx.strokeStyle = "rgba(255,220,180,.35)"; ctx.lineWidth = 1;   // оплётка
+  ctx.strokeStyle = "rgba(255,220,180,.35)"; ctx.lineWidth = 1;   // the wrapping
   for (let i = 1; i < 7; i++) { ctx.beginPath(); ctx.moveTo(-HANDLE + i * 6.5, -5); ctx.lineTo(-HANDLE + i * 6.5 + 4, 5); ctx.stroke(); }
-  ctx.fillStyle = "#c8a070";   // навершие и кольцо
+  ctx.fillStyle = "#c8a070";   // the pommel and the ring
   ctx.beginPath(); ctx.arc(-HANDLE, 0, 6.5, 0, Math.PI * 2); ctx.fill();
   ctx.fillRect(-3, -6, 4, 12);
   ctx.restore();
@@ -188,16 +192,16 @@ function open(button, hub) {
   button.setAttribute("aria-pressed", "true");
   layer = document.createElement("div");
   layer.setAttribute("role", "dialog");
-  layer.setAttribute("aria-label", "Плётка: щёлкайте по экрану, Esc — убрать следы");
+  layer.setAttribute("aria-label", tr("Whip: crack it on the screen, Esc clears the marks", "Плётка: щёлкайте по экрану, Esc — убрать следы"));
   Object.assign(layer.style, { position: "fixed", inset: "0", zIndex: "2147483000", cursor: "none", touchAction: "none",
     overflow: "hidden" });
   const marks = canvas(), fx = canvas(), hand = canvas();
 
   let mx = innerWidth / 2, my = innerHeight / 2, lastX = mx, dir = 1;
-  const angle = -0.6;   // рукоять наклонена, кончик — у курсора
+  const angle = -0.6;   // the handle is tilted, its tip at the cursor
   const rope = whip(mx, my);
   let cracking = null, hits = 0;
-  // взмах кистью: точка крепления уходит назад и вверх, потом резко вперёд и вниз — волна бежит по хлысту к кончику
+  // a flick of the wrist: the anchor goes back and up, then sharply forward and down — a wave runs along the lash to the tip
   const FLICK = [[-0.4, -0.5], [-0.8, -1], [-1, -1.2], [-0.6, -0.9], [0.2, -0.3], [0.9, 0.2], [1.2, 0.5], [0.8, 0.4],
     [0.4, 0.2], [0.1, 0.05]];
   const REACH = 60;
@@ -221,7 +225,7 @@ function open(button, hub) {
     if (cracking && !calm()) {
       cracking.frames++;
       const v = rope.tipSpeed();
-      // щелчок — когда кончик, разогнавшись после взмаха, начал тормозить
+      // the crack is when the tip, sped up by the swing, starts to slow down
       if (cracking.frames > FLICK.length / 2 && (v < cracking.peak * 0.75 || cracking.frames > 30)) { crack(); cracking = null; }
       else if (cracking.frames > FLICK.length / 2) cracking.peak = Math.max(cracking.peak, v);
     }
@@ -242,10 +246,10 @@ function open(button, hub) {
   Object.assign(bar.style, { position: "absolute", top: "12px", right: "12px", display: "flex", gap: "8px",
     padding: "6px", borderRadius: "10px", background: "var(--card, #fff)", boxShadow: "0 8px 24px rgba(0,0,0,.25)",
     cursor: "default" });
-  const done = hub.el("button", "btn small", "Убрать следы");
+  const done = hub.el("button", "btn small", tr("Clear marks", "Убрать следы"));
   done.type = "button";
   done.addEventListener("click", (e) => { e.stopPropagation(); close(button); });
-  const hint = hub.el("span", null, "Щёлкайте плёткой · Esc");
+  const hint = hub.el("span", null, tr("Crack the whip · Esc", "Щёлкайте плёткой · Esc"));
   Object.assign(hint.style, { alignSelf: "center", fontSize: "12px", color: "var(--muted-foreground, #666)", padding: "0 6px" });
   bar.append(hint, done);
   bar.addEventListener("pointerdown", (e) => e.stopPropagation());
@@ -254,7 +258,7 @@ function open(button, hub) {
   layer.addEventListener("pointerdown", (e) => {
     mx = e.clientX; my = e.clientY;
     crackSound(Math.min(1, 0.6 + hits * 0.05));
-    if (calm()) {   // без физики: рубец по дуге от руки и щелчок сразу
+    if (calm()) {   // no physics: a welt along an arc from the hand and the crack at once
       const pts = Array.from({ length: 12 }, (_, i) => [mx + dir * i * 14, my - 40 + Math.pow(i - 6, 2) * 1.6]);
       welt(marks.getContext("2d"), pts);
       return;
@@ -268,6 +272,7 @@ function open(button, hub) {
 }
 
 export default function register(hub) {
+  RU = hub.lang === "ru";
   hub.addSlot("topbar", {
     id: "whip", order: 91,
     render(root) {
@@ -275,8 +280,8 @@ export default function register(hub) {
       const b = hub.el("button", "btn quiet small");
       b.type = "button";
       b.innerHTML = ICON;
-      b.append(" Плётка");
-      b.title = "Щёлкнуть плёткой (Esc — убрать следы)";
+      b.append(tr(" Whip", " Плётка"));
+      b.title = tr("Crack the whip (Esc clears the marks)", "Щёлкнуть плёткой (Esc — убрать следы)");
       b.setAttribute("aria-pressed", "false");
       b.addEventListener("click", () => open(b, hub));
       root.append(b);
